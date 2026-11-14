@@ -1,0 +1,12 @@
+{
+  "name": "devils-plan-edu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "데블스 플랜 게임을 차용한 초등 6학년 학습 연계 게임 웹앱",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}
