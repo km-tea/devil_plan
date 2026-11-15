@@ -84,6 +84,8 @@
   function nextDelay() {
     const p = S.view && S.view.phase;
     let d = p === 'memorize' ? 1500 : p === 'select' ? 2000 : 2500;
+    const g = S.session && gameById(S.session.game);
+    if (g && g.pollMs) d = g.pollMs(S.view);
     if (document.hidden) d = 8000;
     d *= 0.8 + Math.random() * 0.4;                      // 학생들이 같은 순간에 몰리지 않게 흩뿌림
     if (S.fails) d = Math.min(10000, d * (1 + S.fails)); // 오류가 나면 점점 천천히
@@ -114,7 +116,8 @@
     const v = S.view;
     if (!v) return;
     let at = null;
-    if (v.phase === 'memorize' && !v.deck) at = v.startsAt;
+    if (v.deadline) at = v.deadline;
+    else if (v.phase === 'memorize' && !v.deck) at = v.startsAt;
     else if (v.phase === 'memorize' || v.phase === 'select') at = v.phaseEndsAt;
     if (at) S.deadline = setTimeout(pollNow, Math.max(0, at - now()) + 300 + Math.random() * 500);
   }
@@ -173,14 +176,14 @@
   function homeScreen() {
     return h('main', { class: 'wrap' },
       h('header', { class: 'hero' },
-        h('h1', {}, '데블스 플랜'),
+        h('h1', {}, '데블스 플랜 & 더 지니어스'),
         h('p', {}, '공부로 얻은 힌트를 들고 승부하는 교실 두뇌 게임')),
       h('label', { class: 'field' }, h('span', {}, '내 이름'),
         h('input', { id: 'name', maxlength: 8, value: S.name, placeholder: '이름 (8글자까지)', autocomplete: 'off',
           oninput: (e) => { S.name = e.target.value; lsSet('dp_name', S.name); } })),
       h('section', { class: 'games' },
         GAMES.map((g) => h('button', { class: 'gamecard', onclick: () => { if (!needName()) return; S.gameId = g.id; S.screen = 'game'; render(); } },
-          h('span', { class: 'suits' }, h('span', {}, '♠'), h('span', { class: 'r' }, '♥'), h('span', { class: 'r' }, '♦'), h('span', {}, '♣')),
+          h('span', { class: 'suits' }, g.icon ? g.icon.map((c, i) => h('span', { class: i === 1 ? 'r' : '' }, c)) : [h('span', {}, '♠'), h('span', { class: 'r' }, '♥'), h('span', { class: 'r' }, '♦'), h('span', {}, '♣')]),
           h('strong', {}, g.name), h('span', { class: 'tagline' }, g.tagline),
           h('span', { class: 'tags' }, g.tags.map((t) => h('em', {}, t))))),
         h('div', { class: 'gamecard soon' }, h('strong', {}, '다음 게임'), h('span', { class: 'tagline' }, '곧 추가돼요'))));
@@ -189,9 +192,10 @@
   function gameScreen() {
     const g = gameById(S.gameId);
     const fields = (g.settings || []).map((f) => {
-      if (S.settings[f.key] == null) S.settings[f.key] = f.options[0][0];
+      const opts = typeof f.options === 'function' ? f.options(S.settings) : f.options; // 다른 설정에 따라 달라지는 선택지
+      if (S.settings[f.key] == null || !opts.some(([val]) => val === S.settings[f.key])) S.settings[f.key] = opts[0][0];
       return h('div', { class: 'field' }, h('span', {}, f.label),
-        h('div', { class: 'seg' }, f.options.map(([val, label]) =>
+        h('div', { class: 'seg' }, opts.map(([val, label]) =>
           h('button', { class: S.settings[f.key] === val ? 'on' : '', onclick: () => { S.settings[f.key] = val; render(); } }, label))));
     });
     const join = S.joining

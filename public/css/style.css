@@ -180,3 +180,61 @@ button.slot{background:none;padding:0}
   .rnote{display:none}
 }
 .q.text{display:block;font:800 21px/1.65 var(--sans);text-align:center;word-break:keep-all}
+
+/* ---------- 결합 ---------- */
+.hero h1{font-size:clamp(30px,7vw,56px)}
+.gh{display:grid;gap:12px 18px;align-items:start;grid-template-columns:minmax(0,1fr);--gw:min(100%,440px)}
+.gh-left,.gh-side{display:flex;flex-direction:column;gap:10px;min-width:0}
+.gh-timer:empty,.gh-ctl:empty,.gh-extra:empty{display:none}
+.gh-boardbox{display:flex;flex-direction:column;align-items:center}
+.gh-head .stage,.gh-head .banner{margin:4px 0 6px}
+.gh-act{min-height:1.4em;margin:0 0 4px}
+.gh-score{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+.gh-score .rd{font:900 15px var(--serif);color:var(--mute);text-align:center;min-width:92px}
+.gh-pl{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:14px;background:#0d302699;border:2px solid var(--line);font-weight:800}
+.gh-pl.me{border-color:var(--brass)}
+.gh-pl.on{background:#dcaa4a33;box-shadow:0 0 0 3px #dcaa4a66}
+.gh-pl b{font:900 26px var(--serif);min-width:1.2em;text-align:center}
+.gh-pl .turn{font-style:normal;font-size:11px;font-weight:900;background:var(--brass);color:#2a1d00;border-radius:99px;padding:1px 8px}
+.gh-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(6px,1.8vw,12px);width:var(--gw)}
+.gc{position:relative;display:block;width:100%;aspect-ratio:1;padding:0;border-radius:12px;border:3px solid #0006;box-shadow:0 3px 0 #0006;user-select:none;overflow:hidden}
+button.gc:active{transform:scale(.96)}
+.gc.bg0{background:#fff}.gc.bg1{background:#151515}.gc.bg2{background:#8d8678}
+.gc .ga{position:absolute;inset:6%;display:block}
+.gc .ga svg{width:100%;height:100%;display:block}
+.gc .gn{position:absolute;top:4px;left:4px;z-index:1;min-width:1.6em;text-align:center;font:900 clamp(12px,2.6vw,17px)/1.5 var(--serif);font-style:normal;background:var(--brass);color:#2a1d00;border-radius:7px;padding:0 4px}
+.gc.sel{outline:5px solid var(--brass);outline-offset:-1px;transform:translateY(-4px)}
+.gc.hl{outline:5px solid #6ee7a8;outline-offset:-1px;animation:ghpulse 1s ease-in-out infinite alternate}
+@keyframes ghpulse{to{transform:translateY(-4px)}}
+.gh-tlabel{margin:0 0 2px;text-align:center;font-weight:800;color:var(--mute);font-size:14px}
+.gh-timer .timer{margin:0 auto}
+.gh-call{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
+.primary.big{font:900 30px var(--serif);padding:16px 10px}
+.primary.gyeol{background:#e9edf2;box-shadow:0 4px 0 #8996a6}
+.gh-ctl{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.gh-ctl .btns{width:100%}
+.gh-info{border-radius:14px;padding:12px 14px;background:#0d3026;border:2px solid var(--brass);font-weight:800;text-align:center;line-height:1.5}
+.gh-info.zero{background:var(--brass);color:#2a1d00}
+.gh-extra h4{margin:4px 0 8px;font:900 16px var(--serif);color:var(--brass)}
+.gh-found{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:baseline;gap:6px;background:#0d302699;border:2px solid var(--line);border-radius:99px;padding:3px 12px;font:900 15px var(--serif)}
+.chip small{font:700 11px var(--sans);color:var(--mute)}
+.chip.me{border-color:var(--brass)}
+.chip.miss{border-color:#6ee7a8;color:#6ee7a8}
+.bigcount.sm{font-size:clamp(40px,10vw,64px);margin:0}
+.gh-final{display:flex;align-items:center;justify-content:center;gap:16px;margin:16px 0}
+.gh-final .f{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 26px;border-radius:16px;background:#0d302699;border:2px solid var(--line);font-weight:800}
+.gh-final .f.me{border-color:var(--brass)}
+.gh-final b{font:900 56px/1 var(--serif)}
+.gh-final .vs2{font:900 20px var(--serif);color:var(--mute)}
+.qlabel{margin:0 0 4px;text-align:center;color:var(--mute);font-size:13px;line-height:1.4}
+.blank{display:inline-block;min-width:3.2em;border-bottom:3px solid var(--brass);color:var(--brass);text-align:center;margin:0 4px}
+.ans input.wide{width:min(100%,320px);font-size:24px}
+@media(min-width:720px){
+  .gh{grid-template-columns:minmax(0,1fr) 320px}
+}
+/* 가로로 든 태블릿: 화면 높이에 맞춰 카드판을 키워 스크롤 없이 보이게 */
+@media(min-width:720px) and (orientation:landscape){
+  .gh{--gw:min(480px,calc(100vh - 230px))}
+  @supports (height:100dvh){.gh{--gw:min(480px,calc(100dvh - 230px))}}
+}
