@@ -36,10 +36,29 @@ test('분수/소수 정답 확인', () => {
   assert.ok(!Q.check({ kind: 'dec', value: 2.5 }, { v: '25' }));
 });
 
-test('문제 생성: 항상 약분된 정답과 깔끔한 소수 몫', () => {
+test('문제 생성(분수·소수·비례배분 섞기): 정답이 항상 깔끔함', () => {
   for (let i = 0; i < 500; i++) {
     const q = Q.make('mix');
     if (q.kind === 'frac') { assert.ok(q.n > 0 && q.d > 0); assert.ok(Q.check(q, { n: String(q.n), d: String(q.d) })); }
-    else { assert.ok(Q.check(q, { v: String(q.value) })); assert.match(q.prompt, /^\d+(\.\d+)? ÷ \d+(\.\d+)?$/); }
+    else if (q.kind === 'dec') { assert.ok(Q.check(q, { v: String(q.value) })); assert.match(q.prompt, /^\d+(\.\d+)? ÷ \d+(\.\d+)?$/); }
+    else { assert.equal(q.kind, 'ratio'); assert.ok(Q.check(q, { v: String(q.value) })); }
   }
+});
+
+test('비례배분 문제: 정수 답, 올바른 값, 조사', () => {
+  for (let i = 0; i < 800; i++) {
+    const q = Q.make('ratio');
+    assert.equal(q.kind, 'ratio');
+    const m = q.prompt.match(/^\S+ (\d+)(개|장|자루)(를|을) ((?:\d+:)+\d+)(으?로) 나누어 가질 때, (\d+)에 해당하는 양은 몇 (개|장|자루)일까요\?$/);
+    assert.ok(m, q.prompt);
+    const total = +m[1], parts = m[4].split(':').map(Number), part = +m[6];
+    const sum = parts.reduce((a, b) => a + b, 0);
+    assert.ok(parts.includes(part) && new Set(parts).size === parts.length);
+    assert.equal(total % sum, 0);
+    assert.equal(q.value, (total / sum) * part);
+    assert.equal(m[5], [3, 6].includes(parts[parts.length - 1]) ? '으로' : '로');
+    assert.equal(m[3], m[2] === '장' ? '을' : '를');
+    assert.ok(Q.check(q, { v: String(q.value) }) && !Q.check(q, { v: String(q.value + 1) }));
+  }
+  assert.ok(Q.check({ kind: 'ratio', value: 4 }, { v: '4' }));
 });

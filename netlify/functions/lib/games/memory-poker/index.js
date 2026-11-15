@@ -14,7 +14,7 @@ const N = 16;            // 암기 카드 수
 function cleanSettings(s) {
   s = s || {};
   return {
-    hintKinds: ['frac', 'dec', 'mix'].includes(s.hintKinds) ? s.hintKinds : 'mix',
+    hintKinds: ['frac', 'dec', 'ratio', 'mix'].includes(s.hintKinds) ? s.hintKinds : 'mix',
     botLevel: ['easy', 'normal', 'hard'].includes(s.botLevel) ? s.botLevel : 'normal',
   };
 }
@@ -163,7 +163,7 @@ function view(state, pid, now) {
       picks: me.confirmed ? me.picks : [],
       hint: {
         status: me.hint.status,
-        question: me.hint.status === 'asking' ? { kind: me.hint.q.kind, prompt: me.hint.q.prompt } : null,
+        question: me.hint.status === 'asking' ? { kind: me.hint.q.kind, prompt: me.hint.q.prompt, unit: me.hint.q.unit || null } : null,
         revealed: me.hint.revealed,
       },
     },
