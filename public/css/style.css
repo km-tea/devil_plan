@@ -238,3 +238,50 @@ button.gc:active{transform:scale(.96)}
   .gh{--gw:min(480px,calc(100vh - 230px))}
   @supports (height:100dvh){.gh{--gw:min(480px,calc(100dvh - 230px))}}
 }
+
+/* ---------- 로그인 · 교사 메뉴 ---------- */
+.wrap.narrow{max-width:460px}
+.whobar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0;padding:10px 14px;border-radius:14px;background:#0d302699;border:2px solid var(--line);font-size:18px}
+.whobar b{font-family:var(--serif)}
+.tlink{text-align:center;margin:22px 0 0}
+.linkbtn{background:none;border:0;color:var(--mute);text-decoration:underline;font:700 14px var(--sans);padding:8px;cursor:pointer}
+.small{font-size:14px;padding:8px 12px;min-height:0}
+.thead{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.thead h2{margin:0;font:900 24px var(--serif)}
+.ttabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.ttabs button{font:800 15px var(--sans);padding:9px 16px;border-radius:99px;border:2px solid var(--line);background:#0d302680;color:var(--text);cursor:pointer}
+.ttabs button.on{background:var(--brass);color:#2a1d00;border-color:var(--brass)}
+.tpanel{background:#0d302699;border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:14px}
+.tpanel h3{margin:0 0 8px;font:900 18px var(--serif)}
+.tpanel h4{margin:14px 0 6px;font:900 15px var(--serif);color:var(--brass)}
+.trow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}
+.trow.between{justify-content:space-between}
+.trow.form input,.tpanel select,.tpanel textarea{font:700 16px var(--sans);padding:9px 10px;border-radius:10px;border:2px solid var(--line);background:#0d302680;color:var(--text)}
+.tpanel textarea{width:100%;margin:8px 0;font-family:ui-monospace,Menlo,monospace}
+.tpanel details{margin:8px 0}
+.tpanel summary{cursor:pointer;font-weight:800;color:var(--mute);padding:6px 0}
+.filebtn{display:inline-block;cursor:pointer;text-align:center}
+.hintline.left{text-align:left;margin:4px 0 8px}
+.tscroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th,.tbl td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap;vertical-align:top}
+.tbl th{color:var(--brass);font-weight:900}
+.tbl td.prompt{white-space:normal;min-width:260px}
+.tbl td.mono{font-family:ui-monospace,Menlo,monospace;letter-spacing:.08em}
+.tbl tr.bad td{background:#c0392b26}
+.tbl td.acts{display:flex;gap:6px}
+.ghost.danger{color:#ff9a8f;border-color:#ff9a8f66}
+.errbox{border:2px solid #ff9a8f;border-radius:12px;padding:10px 14px;margin:8px 0;background:#c0392b26}
+.errbox ul{margin:6px 0 0 18px;padding:0}
+.sumline{font-weight:800;margin:6px 0}
+.chk{display:inline-flex;align-items:center;gap:6px;margin:4px 0 8px;font-weight:700}
+
+/* ---------- 결합: 고른 카드 표시 / 교사 등록 ---------- */
+.gh-grid.picking .gc:not(.sel){opacity:.5;filter:saturate(.6)}
+.gc.sel{outline:6px solid #ff3d7f;outline-offset:-2px;box-shadow:0 0 0 4px #fff,0 0 22px 8px #ff3d7f99;transform:scale(1.05);z-index:2}
+.gc .pk{position:absolute;right:4px;bottom:4px;z-index:3;font:900 clamp(16px,4vw,26px)/1 var(--serif);font-style:normal;background:#ff3d7f;color:#fff;border-radius:99px;padding:5px 11px;box-shadow:0 2px 0 #0007}
+.gh-slots{display:flex;justify-content:center;gap:12px;margin:12px 0 4px}
+.gh-slots .slot{display:inline-flex;align-items:center;justify-content:center;width:clamp(52px,12vw,70px);aspect-ratio:1;border-radius:14px;border:3px dashed var(--line);font:900 clamp(26px,6vw,38px) var(--serif);color:var(--mute)}
+.gh-slots .slot.on{border:3px solid #ff3d7f;background:#ff3d7f;color:#fff;box-shadow:0 3px 0 #0007}
+.fnote{display:block;margin-top:6px;color:var(--mute);font-size:13px;line-height:1.4}
+.tlink .linkbtn{display:block;margin:0 auto}

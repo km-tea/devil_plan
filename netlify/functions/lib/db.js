@@ -50,6 +50,40 @@ function ensureSchema() {
       detail     jsonb,
       created_at timestamptz NOT NULL DEFAULT now()
     )`;
+    // ---- 학생·교사 로그인, 학습 기록 연결 ----
+    await q`CREATE TABLE IF NOT EXISTS students (
+      id         serial PRIMARY KEY,
+      class_code text NOT NULL,
+      num        integer NOT NULL,
+      name       text NOT NULL,
+      password   text NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      UNIQUE (class_code, num)
+    )`;
+    await q`CREATE TABLE IF NOT EXISTS teachers (
+      id         serial PRIMARY KEY,
+      teacher_id text NOT NULL UNIQUE,
+      pw         text NOT NULL,
+      class_code text NOT NULL UNIQUE,
+      created_at timestamptz NOT NULL DEFAULT now()
+    )`;
+    await q`CREATE TABLE IF NOT EXISTS sessions (
+      token_hash text PRIMARY KEY,
+      role       text NOT NULL,
+      student_id integer,
+      expires_at timestamptz NOT NULL
+    )`;
+    await q`CREATE TABLE IF NOT EXISTS login_attempts (
+      id   bigserial PRIMARY KEY,
+      ip   text NOT NULL,
+      role text NOT NULL,
+      at   timestamptz NOT NULL DEFAULT now()
+    )`;
+    await q`CREATE INDEX IF NOT EXISTS login_attempts_idx ON login_attempts (ip, role, at)`;
+    await q`ALTER TABLE answer_logs ADD COLUMN IF NOT EXISTS student_id integer`;
+    await q`ALTER TABLE game_results ADD COLUMN IF NOT EXISTS p1_sid integer`;
+    await q`ALTER TABLE game_results ADD COLUMN IF NOT EXISTS p2_sid integer`;
+    await q`CREATE INDEX IF NOT EXISTS answer_logs_student_idx ON answer_logs (student_id, created_at)`;
   })().catch((e) => { ready = null; throw e; });
   return ready;
 }

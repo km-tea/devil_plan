@@ -51,12 +51,53 @@ test('문제 은행: 빈칸 표시·정답이 있고 학년/학기 범위가 맞
   assert.equal(Q.check({ answer: '공업 단지' }, { text: '공업단지' }), true); // 띄어쓰기 무시
 });
 
-test('컴퓨터: 난이도가 높을수록 합을 더 자주 찾는다', () => {
+test('컴퓨터: 항상 10초 안에 답하고, 어려울수록 실수가 적다', () => {
   const cards = rules.deal(); const sets = rules.allSets(cards);
-  if (!sets.length) return;
-  const rate = (lv) => { let n = 0; for (let i = 0; i < 2000; i++) if (bot.plan(lv, cards, sets).act === 'set') n++; return n / 2000; };
-  const [e, m, h] = [rate('easy'), rate('normal'), rate('hard')];
-  assert.ok(e < m && m < h, `${e} ${m} ${h}`);
+  const none = []; // 합이 없는 판
+  const stat = (lv, rem) => {
+    let wrong = 0, maxDelay = 0;
+    for (let i = 0; i < 3000; i++) {
+      const p = bot.plan(lv, cards, rem); maxDelay = Math.max(maxDelay, p.delaySec);
+      assert.ok(['set', 'wrongset', 'gyeol'].includes(p.act), '패스 없이 답을 낸다');
+      const good = rem.length ? p.act === 'set' : p.act === 'gyeol';
+      if (!good) wrong++;
+    }
+    return { rate: wrong / 3000, maxDelay };
+  };
+  for (const rem of [sets.length ? sets : [[0, 1, 2]], none]) {
+    const [e, m, h] = ['easy', 'normal', 'hard'].map((lv) => stat(lv, rem));
+    assert.ok(e.rate > m.rate && m.rate > h.rate, `${e.rate} ${m.rate} ${h.rate}`);
+    for (const x of [e, m, h]) assert.ok(x.maxDelay <= 10, '10초 이내');
+  }
+});
+
+test('컴퓨터 턴: 사람이 행동한 직후 시작해 10초 안에 행동한다', () => {
+  for (const lv of ['easy', 'normal', 'hard']) for (let k = 0; k < 40; k++) {
+    const s = mk('cpu', { botLevel: lv }); const t = startAt(s);
+    const p1 = player(s, 'p1');
+    if (s.turn.pid !== 'p1') continue;
+    G.handle(s, p1, 'pass', {}, t + 2000);       // 사람이 행동 → 컴퓨터 차례
+    assert.equal(s.turn.pid, 'p2');
+    assert.ok(s.bot.at - (t + 2000) <= 10000, '컴퓨터가 정한 시각이 10초 이내');
+    G.advance(s, s.bot.at + 1);                    // 컴퓨터가 정한 시각이 되면 행동한다 (패스는 하지 않음)
+    assert.ok(s.lastAct && s.lastAct.pid === 'p2' && s.lastAct.kind !== 'pass' && s.lastAct.kind !== 'timeout');
+  }
+});
+
+test('라운드 수 선택: 3·5·10, 그 밖의 값은 10', () => {
+  for (const [input, want] of [['3', 3], [5, 5], ['10', 10], ['7', 10], [undefined, 10]]) {
+    const s = mk('pvp', { rounds: input });
+    assert.equal(s.settings.rounds, want);
+    assert.equal(G.view(s, 'p1', T0).settings.rounds, want);
+  }
+  const s = mk('pvp', { rounds: 3 }); startAt(s);
+  for (let r = 1; r <= 3; r++) {
+    s.found = s.sets.map((x) => ({ t: x, by: 'p1' }));
+    G.handle(s, player(s, s.turn.pid), 'call_none', {}, s.turn.startAt + 300);
+    if (r < 3) { assert.equal(s.phase, 'between'); G.advance(s, s.nextAt + 5); }
+  }
+  assert.equal(s.phase, 'result'); assert.equal(s.round, 3);
+  assert.equal(s.result.scores.p1 + s.result.scores.p2, 9);
 });
 
 test('진행: 합 성공 +1, 틀린 합 -1, 턴 교대, 이미 나온 합은 점수 없이 안내', () => {
@@ -178,6 +219,7 @@ test('컴퓨터와 한 판: 시간을 건너뛰며 끝까지 진행되고 정답
   const s = mk('cpu'); startAt(s);
   G.handle(s, player(s, 'p1'), 'hint_start', { kind: 'time' }, T0 + 3100);
   const v = G.view(s, 'p1', T0 + 3200);
-  assert.ok(!JSON.stringify(v).includes(player(s, 'p1').hint.q.answer + '"'));
+  assert.ok(!JSON.stringify(v).includes('"answer"'), '정답 항목은 화면으로 보내지 않음');
+  assert.ok(v.me.hint.question.text.includes('(      )'));
   assert.equal(v.sets, undefined);
 });

@@ -116,7 +116,7 @@ function handle(state, player, action, payload, now) {
     case 'hint_answer': {
       need(state.phase === 'select' && hint.status === 'asking', '풀고 있는 힌트 문제가 없어요');
       const ok = Q.check(hint.q, payload);
-      events.push({ type: 'answer', player: player.name, kind: hint.q.kind, prompt: hint.q.prompt, correct: ok });
+      events.push({ type: 'answer', pid: player.id, player: player.name, kind: hint.q.kind, prompt: hint.q.prompt, correct: ok });
       if (ok) { hint.status = 'ready'; hint.q = null; }
       else hint.q = Q.make(state.settings.hintKinds); // 틀리면 새 문제
       return { events, response: { correct: ok } };

@@ -1,7 +1,8 @@
 'use strict';
 // 결합 — 서버 쪽 게임 모듈 (규격: create / join / advance / handle / view / stableForPoll)
 //
-// 진행: 10라운드. 라운드마다 카드 9장이 공개되고, 두 사람이 번갈아 "턴"을 가진다.
+// 진행: 3·5·10라운드 중 선택. 라운드마다 카드 9장이 공개되고, 두 사람이 번갈아 "턴"을 가진다.
+//  - 컴퓨터는 자기 턴이 시작되고 10초 안에 반드시 답한다(난이도마다 실수 확률이 다름, bot.js).
 //  - 턴 시간 30초(원래 규칙은 10초). 이 안에 '합'(3장 지목) / '결'(합이 더 없음) / 패스.
 //  - 합 정답 +1, 오답 -1 / 결 정답 +3(라운드 끝), 오답 -1 후 턴 넘김.
 //  - 이미 불린 합은 다시 불러도 점수가 없고(안내만 나옴), 아무도 합·결을 부르지 않은 채 6턴이 지나면 라운드 종료.
@@ -12,7 +13,8 @@ const rules = require('./rules');
 const bot = require('./bot');
 const Q = require('./questions');
 
-const ROUNDS = 10;
+const ROUNDS = 10;           // 기본 라운드 수 (설정에서 3·5·10 중 선택)
+const ROUND_CHOICES = [3, 5, 10];
 const TURN_SEC = 30;
 const NAME_SEC = 5;          // '합'을 외친 뒤 세 장을 지목하는 시간
 const NAME_GRACE_MS = 1500;  // 네트워크 지연 여유
@@ -26,7 +28,8 @@ const SCORE = { set: 1, bad: -1, gyeol: 3 };
 function cleanSettings(s) {
   s = s || {};
   const scope = Q.cleanScope(s.grade, s.semester);
-  return { ...scope, botLevel: ['easy', 'normal', 'hard'].includes(s.botLevel) ? s.botLevel : 'normal' };
+  const rounds = ROUND_CHOICES.includes(Number(s.rounds)) ? Number(s.rounds) : ROUNDS;
+  return { ...scope, rounds, botLevel: ['easy', 'normal', 'hard'].includes(s.botLevel) ? s.botLevel : 'normal' };
 }
 
 const newPlayer = (id, name, token, isBot) => ({
@@ -34,6 +37,7 @@ const newPlayer = (id, name, token, isBot) => ({
   hint: { kind: null, q: null }, timeTurn: -1, infoLeft: INFO_LIMIT, infoTurn: -1,
 });
 
+const roundsOf = (state) => state.settings.rounds || ROUNDS;
 const other = (state, pid) => state.players.find((p) => p.id !== pid);
 const me = (state, pid) => state.players.find((p) => p.id === pid);
 const remainingSets = (state) => {
@@ -101,7 +105,7 @@ function endRound(state, at, reason, by, events) {
   state.last = { round: state.round, reason, by, missed: state.missed.length };
   state.turn = null; state.bot = null;
   for (const p of state.players) p.hint = { kind: null, q: null };
-  if (state.round >= ROUNDS) finish(state, events || []);
+  if (state.round >= roundsOf(state)) finish(state, events || []);
   else { state.phase = 'between'; state.nextAt = at + BETWEEN_SEC * 1000; }
 }
 
@@ -239,7 +243,7 @@ function handle(state, player, action, payload, now) {
       need(myTurn(state, player) && !state.turn.naming && player.hint.q, '풀고 있는 문제가 없어요');
       const q = player.hint.q, kind = player.hint.kind;
       const ok = Q.check(q, payload);
-      events.push({ type: 'answer', player: player.name, kind: 'social', prompt: `[${q.label}] ${q.text} → ${q.answer}`, correct: ok });
+      events.push({ type: 'answer', pid: player.id, player: player.name, kind: 'social', prompt: `[${q.label}] ${q.text} → ${q.answer}`, correct: ok });
       if (ok) {
         if (kind === 'time') { state.turn.endsAt += TIME_BONUS_SEC * 1000; player.timeTurn = state.turn.no; }
         else { player.infoLeft -= 1; player.infoTurn = state.turn.no; }
@@ -272,7 +276,7 @@ function view(state, pid, now) {
   const hint = mine.hint;
   const v = {
     game: 'gyeolhap', mode: state.mode, phase: state.phase, round: state.round,
-    settings: { rounds: ROUNDS, turnSec: TURN_SEC, nameSec: NAME_SEC, timeBonus: TIME_BONUS_SEC, infoLimit: INFO_LIMIT, idleLimit: IDLE_LIMIT, scope: { grade: state.settings.grade, semester: state.settings.semester } },
+    settings: { rounds: roundsOf(state), turnSec: TURN_SEC, nameSec: NAME_SEC, timeBonus: TIME_BONUS_SEC, infoLimit: INFO_LIMIT, idleLimit: IDLE_LIMIT, scope: { grade: state.settings.grade, semester: state.settings.semester } },
     deadline,
     me: {
       id: mine.id, name: mine.name, score: mine.score, rematch: mine.rematch,

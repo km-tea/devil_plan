@@ -50,14 +50,16 @@ async function mutate(code, fn) {
 async function flush(events, r, code) {
   if (!events || !events.length) return;
   const sql = getSql();
+  const players = r.state.players || [];
+  const sidOf = (pid) => { const p = players.find((x) => x.id === pid); return p && p.sid != null ? p.sid : null; };
   for (const e of events) {
     try {
       if (e.type === 'answer') {
-        await sql`INSERT INTO answer_logs (room_code, game_id, player_name, kind, prompt, correct)
-                  VALUES (${code}, ${r.gameId}, ${e.player}, ${e.kind}, ${e.prompt}, ${e.correct})`;
+        await sql`INSERT INTO answer_logs (room_code, game_id, player_name, kind, prompt, correct, student_id)
+                  VALUES (${code}, ${r.gameId}, ${e.player}, ${e.kind}, ${e.prompt}, ${e.correct}, ${sidOf(e.pid)})`;
       } else if (e.type === 'result') {
-        await sql`INSERT INTO game_results (room_code, game_id, mode, p1_name, p2_name, winner, detail)
-                  VALUES (${code}, ${r.gameId}, ${r.mode}, ${e.p1}, ${e.p2}, ${e.winner}, ${JSON.stringify(e.hands)}::jsonb)`;
+        await sql`INSERT INTO game_results (room_code, game_id, mode, p1_name, p2_name, winner, detail, p1_sid, p2_sid)
+                  VALUES (${code}, ${r.gameId}, ${r.mode}, ${e.p1}, ${e.p2}, ${e.winner}, ${JSON.stringify(e.hands)}::jsonb, ${sidOf('p1')}, ${sidOf('p2')})`;
       }
     } catch (err) { console.error('log failed', err.message); }
   }
@@ -65,11 +67,12 @@ async function flush(events, r, code) {
 
 const pack = (r, code) => ({ now: r.now, v: r.version, code, view: r.game.view(r.state, r.out.pid, r.now) });
 
-async function create({ game: gameId, mode, name, settings }) {
+async function create({ game: gameId, mode, name, settings, sid }) {
   const game = getGame(gameId);
   if (!['pvp', 'cpu'].includes(mode)) throw new ApiError('모드를 확인해 주세요');
   const token = newToken();
   const state = game.create({ mode, settings, host: { name: cleanName(name), token }, now: Date.now() });
+  state.players[0].sid = sid == null ? null : sid; // 학습 기록을 학생과 연결
   const body = JSON.stringify(state);
   const sql = getSql();
 
@@ -92,11 +95,12 @@ async function create({ game: gameId, mode, name, settings }) {
   throw new ApiError('지금 빈 방 번호가 없어요. 잠시 뒤에 다시 시도해 주세요', 503);
 }
 
-async function join({ code, name }) {
+async function join({ code, name, sid }) {
   code = checkCode(code);
   const token = newToken();
   const r = await mutate(code, ({ state, game, now }) => {
     const pid = game.join(state, { name: cleanName(name), token }, now);
+    state.players.find((p) => p.token === token).sid = sid == null ? null : sid;
     return { changed: true, pid };
   });
   return { code, token, pid: r.out.pid, game: r.gameId };

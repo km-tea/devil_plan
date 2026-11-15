@@ -28,13 +28,15 @@
     o = o || {};
     const shape = Math.floor(id / 9), color = Math.floor(id / 3) % 3, bg = id % 3;
     const el = h(o.tap ? 'button' : 'div', {
-      class: 'gc bg' + bg + (o.sel ? ' sel' : '') + (o.hl ? ' hl' : '') + (o.sm ? ' sm' : ''),
+      class: 'gc bg' + bg + (o.order ? ' sel' : '') + (o.hl ? ' hl' : '') + (o.sm ? ' sm' : ''),
+      'aria-pressed': o.tap ? String(!!o.order) : null,
       'aria-label': `${num}번 카드: ${BG_NAMES[bg]} 배경의 ${COLOR_NAMES[color]} ${SHAPE_NAMES[shape]}`,
       onclick: o.tap || null,
     }, h('i', { class: 'gn' }, num));
     const art = h('span', { class: 'ga' });
     art.innerHTML = shapeSvg(shape, color);
     el.append(art);
+    if (o.order) el.append(h('b', { class: 'pk' }, '✔ ' + o.order)); // 고른 카드: 큰 표시 + 고른 순서
     return el;
   }
 
@@ -74,11 +76,18 @@
   /* ---------- 카드판 ---------- */
   function board(v, ctx, tapFn, hlSets) {
     const hl = new Set((hlSets || []).flat());
-    return h('div', { class: 'gh-grid' }, v.cards.map((c, i) => card(c, i + 1, {
+    return h('div', { class: 'gh-grid' + (tapFn ? ' picking' : '') }, v.cards.map((c, i) => card(c, i + 1, {
       tap: tapFn ? () => tapFn(i) : null,
-      sel: L.picks.includes(i),
+      order: tapFn ? L.picks.indexOf(i) + 1 : 0,
       hl: hl.has(i),
     })));
+  }
+
+  // 고른 카드 3칸: 누른 번호가 큰 숫자로 보임 (빈 칸은 점선)
+  function pickSlots() {
+    return h('div', { class: 'gh-slots', 'aria-live': 'polite' }, [0, 1, 2].map((k) => (L.picks[k] != null
+      ? h('span', { class: 'slot on' }, L.picks[k] + 1)
+      : h('span', { class: 'slot' }, '?'))));
   }
 
   /* ---------- 라운드 진행 ---------- */
@@ -112,7 +121,7 @@
       : h('div', {}, h('p', { class: 'gh-tlabel' }, mineTurn ? '내 시간' : '상대 시간'), ctx.timer(v.turn.endsAt, v.settings.turnSec * 1000)));
 
     P.board.append(board(v, ctx, tap));
-    if (mineTurn && naming) P.board.append(h('p', { class: 'hintline' }, `선택한 카드: ${L.picks.length ? nums(L.picks.slice().sort((a, b) => a - b)) : '없음'} (3장을 고르면 바로 확인해요)`));
+    if (mineTurn && naming) P.board.append(pickSlots(), h('p', { class: 'hintline' }, '3장을 고르면 바로 확인해요 · 다시 누르면 선택이 취소돼요'));
 
     // 힌트 안내
     if (hint.info) {
@@ -242,14 +251,16 @@
       '내 차례에 30초 안에 "합!"을 누르고 5초 안에 카드 3장을 눌러요. 맞으면 +1점, 틀리면 -1점이에요.',
       '더 이상 합이 없다고 생각하면 "결!" — 맞으면 +3점으로 라운드가 끝나고, 합이 남아 있으면 -1점이에요.',
       '아무것도 안 부르고 패스하거나 시간이 끝나면 점수 변화 없이 상대에게 넘어가요. 아무도 안 부른 채 6턴이 지나면 라운드가 끝나요.',
-      '이미 나온 합은 다시 불러도 점수가 없어요. 총 10라운드, 점수가 높은 사람이 이겨요.',
+      '이미 나온 합은 다시 불러도 점수가 없어요. 정한 라운드(3·5·10)가 끝났을 때 점수가 높은 사람이 이겨요.',
+      '컴퓨터와 연습하면 내가 행동한 뒤 컴퓨터가 10초 안에 답해요. 난이도가 어려울수록 실수를 덜 해요.',
       '힌트 ⏱ 사회 문제를 맞히면 이번 턴이 10초 늘어요(한 턴에 1번). 💡 문제를 맞히면 남은 합이 몇 개인지(0개면 "결")를 알려 줘요(한 게임에 3번).',
     ],
     settings: [
       { key: 'grade', label: '학년', options: GRADES.map((g) => [String(g), g + '학년']) },
       { key: 'semester', label: '힌트 문제 학기 (알짜 정리 학습지 단답식)',
         options: (st) => { const sem = SEMESTERS[st.grade] || [1, 2]; return (sem.length > 1 ? [['all', '학기 모두']] : []).concat(sem.map((n) => [String(n), n + '학기'])); } },
-      { key: 'botLevel', label: '컴퓨터 난이도 (컴퓨터와 연습할 때만 적용)', options: [['easy', '쉬움'], ['normal', '보통'], ['hard', '어려움']] },
+      { key: 'rounds', label: '라운드 수', default: '5', options: [['3', '3라운드'], ['5', '5라운드'], ['10', '10라운드']] },
+      { key: 'botLevel', label: '컴퓨터 난이도 (컴퓨터와 연습할 때만 적용) — 어려울수록 실수를 덜 해요', options: [['easy', '쉬움'], ['normal', '보통'], ['hard', '어려움']] },
     ],
     pollMs: (v) => (v && (v.phase === 'play' || v.phase === 'between') ? 1500 : 2500),
     render,

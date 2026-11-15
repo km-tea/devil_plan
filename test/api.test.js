@@ -1,3 +1,4 @@
+process.env.ALLOW_GUEST = '1'; // 로그인 없이 이름만으로 입장 (게임 흐름 검사용)
 // DB 없이 전체 흐름(api.js → rooms.js → 게임 모듈)을 검사: 가짜 sql로 Neon을 대신함
 const test = require('node:test');
 const assert = require('node:assert/strict');
