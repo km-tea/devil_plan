@@ -3,4 +3,5 @@
 module.exports = {
   'memory-poker': require('./memory-poker'),
   'gyeolhap': require('./gyeolhap'),
+  'twelve-janggi': require('./twelve-janggi'),
 };

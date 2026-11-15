@@ -285,3 +285,46 @@ button.gc:active{transform:scale(.96)}
 .gh-slots .slot.on{border:3px solid #ff3d7f;background:#ff3d7f;color:#fff;box-shadow:0 3px 0 #0007}
 .fnote{display:block;margin-top:6px;color:var(--mute);font-size:13px;line-height:1.4}
 .tlink .linkbtn{display:block;margin:0 auto}
+
+/* ---------- 십이장기 ---------- */
+.jboard{display:grid;grid-template-columns:repeat(3,var(--cell));gap:4px;--cell:min(27vw,110px);padding:8px;border-radius:14px;background:#5b3f1e;box-shadow:0 4px 0 #0007;margin:8px auto}
+.jc{position:relative;display:block;width:var(--cell);height:var(--cell);padding:0;border:0;border-radius:6px;background:#e8d3a8}
+.jc.alt{background:#dcc391}
+.jc.last{box-shadow:inset 0 0 0 4px #f4c20daa}
+.jc.sel{box-shadow:inset 0 0 0 5px #ff3d7f}
+button.jc{cursor:pointer}
+.jc .dot{position:absolute;left:50%;top:50%;width:34%;height:34%;transform:translate(-50%,-50%);border-radius:50%;background:#1faa5acc;box-shadow:0 0 0 4px #1faa5a55;pointer-events:none}
+.jc.tgt:not(:has(.jp)) .dot{width:30%;height:30%}
+.jc.tgt:has(.jp){box-shadow:inset 0 0 0 5px #1faa5a}
+.jc.tgt:has(.jp) .dot{display:none}
+.jp{position:relative;width:86%;height:86%;margin:7%;display:grid;place-items:center;border-radius:8px;border:4px solid;background:#fff8ef;color:#2b1b14;box-shadow:0 2px 0 #0006}
+.jp .ch{font:900 calc(var(--cell) * .42)/1 'Noto Serif KR','Noto Serif CJK KR','Batang',serif}
+.jp.mine{border-color:#c0392b}
+.jp.theirs{border-color:#1f8a4c;transform:rotate(180deg)}
+.jp.tK.mine{background:#c0392b;color:#fff}
+.jp.tK.theirs{background:#1f8a4c;color:#fff}
+.jp.can{box-shadow:0 0 0 3px #f4c20d,0 2px 0 #0006}
+.jp .ar{position:absolute;width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:8px solid #2b1b14;transform:translate(-50%,-50%) rotate(var(--r));opacity:.8}
+.jp.tK .ar{border-bottom-color:#fff}
+.a-n{left:50%;top:9%;--r:0deg}.a-ne{left:88%;top:12%;--r:45deg}.a-e{left:91%;top:50%;--r:90deg}.a-se{left:88%;top:88%;--r:135deg}
+.a-s{left:50%;top:91%;--r:180deg}.a-sw{left:12%;top:88%;--r:225deg}.a-w{left:9%;top:50%;--r:270deg}.a-nw{left:12%;top:12%;--r:315deg}
+.jp.sm{width:46px;height:46px;margin:0;border-width:3px}
+.jp.sm .ch{font-size:22px}
+.jp.sm .ar{display:none}
+.jhand{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;min-height:56px;margin:2px 0}
+.jhand .hl{font-size:13px;font-weight:800;color:var(--mute)}
+.jhand .none{font-size:13px;color:var(--mute)}
+.jh{position:relative;padding:3px;border-radius:10px;border:2px solid transparent;background:none}
+button.jh{cursor:pointer}
+.jh.sel{border-color:#ff3d7f;background:#ff3d7f33}
+.jh .cnt{position:absolute;right:-6px;bottom:-6px;background:var(--brass);color:#2a1d00;border-radius:99px;padding:0 6px;font:900 13px var(--serif)}
+.jhint{border-radius:14px;padding:10px 14px;background:#0d302699;border:2px solid var(--line)}
+.jhint .hrow{display:flex;align-items:center;justify-content:space-between}
+.hdots .hd{font-size:26px;opacity:.25;filter:grayscale(1);margin-left:4px}
+.hdots .hd.on{opacity:1;filter:none}
+.jc2{font-weight:900;font-size:14px}
+.jg .primary.big{font-size:20px;padding:14px 10px}
+@media(min-width:720px) and (orientation:landscape){
+  .jboard{--cell:min(110px,calc((100vh - 330px) / 4))}
+  @supports (height:100dvh){.jboard{--cell:min(110px,calc((100dvh - 330px) / 4))}}
+}

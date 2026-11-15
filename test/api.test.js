@@ -95,3 +95,21 @@ test('입력 검증: 잘못된 코드/없는 방/없는 게임', async () => {
   assert.equal((await call({ action: 'create', game: 'nope', mode: 'pvp', name: 'x' })).status, 400);
   assert.equal((await call({ action: 'create', game: 'memory-poker', mode: 'abc', name: 'x' })).status, 400);
 });
+
+test('십이장기: 방 만들기 → 두 사람이 입장 → 말 이동 → 상대 화면에 반영, 정답은 노출되지 않음', async () => {
+  const a = await call({ action: 'create', game: 'twelve-janggi', mode: 'pvp', name: '지민', settings: { hintKinds: 'times' } });
+  const b = await call({ action: 'join', code: a.code, name: '서준' });
+  const sa = await call({ action: 'state', code: a.code, token: a.token, v: -1 });
+  assert.equal(sa.view.phase, 'play'); assert.equal(sa.view.turn.pid, 'p1'); assert.ok(sa.view.legal.length > 0);
+  const sb = await call({ action: 'state', code: a.code, token: b.token, v: -1 });
+  assert.equal(sb.view.legal, undefined, '내 차례가 아니면 둘 수 있는 수를 보내지 않음');
+  const mv = await call({ action: 'move', code: a.code, token: a.token, payload: { from: 11, to: 8 } });
+  assert.ok(!mv.error, mv.error);
+  const hs = await call({ action: 'hint_start', code: a.code, token: a.token });
+  assert.ok(!hs.error, hs.error);
+  const sa2 = await call({ action: 'state', code: a.code, token: a.token, v: -1 });
+  assert.equal(sa2.view.turn.stage, 'quiz'); assert.ok(sa2.view.me.hint.question);
+  assert.ok(!JSON.stringify(sa2).includes('"value"'));
+  const bad = await call({ action: 'move', code: a.code, token: b.token, payload: { from: 0, to: 3 } });
+  assert.ok(bad.error, '내 차례가 아닐 때는 거절');
+});
