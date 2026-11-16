@@ -60,6 +60,11 @@ async function flush(events, r, code) {
       } else if (e.type === 'result') {
         await sql`INSERT INTO game_results (room_code, game_id, mode, p1_name, p2_name, winner, detail, p1_sid, p2_sid)
                   VALUES (${code}, ${r.gameId}, ${r.mode}, ${e.p1}, ${e.p2}, ${e.winner}, ${JSON.stringify(e.hands)}::jsonb, ${sidOf('p1')}, ${sidOf('p2')})`;
+      } else if (e.type === 'coop') { // 협력 게임: 참가한 학생마다 결과 한 줄
+        for (const pl of e.players) {
+          await sql`INSERT INTO game_results (room_code, game_id, mode, p1_name, p2_name, winner, detail, p1_sid, p2_sid)
+                    VALUES (${code}, ${r.gameId}, ${r.mode}, ${pl.name}, ${e.together}, 'coop', ${JSON.stringify(e.hands)}::jsonb, ${sidOf(pl.pid)}, ${null})`;
+        }
       }
     } catch (err) { console.error('log failed', err.message); }
   }

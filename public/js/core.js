@@ -296,9 +296,9 @@
       h('div', { class: 'panel' }, h('ol', { class: 'rules' }, g.rules.map((r) => h('li', {}, r)))),
       fields,
       h('div', { class: 'btn-row' },
-        h('button', { class: 'primary', onclick: () => createRoom('pvp') }, '👥 방 만들기'),
+        h('button', { class: 'primary', onclick: () => createRoom('pvp') }, (g.modeLabels && g.modeLabels.pvp) || '👥 방 만들기'),
         h('button', { class: 'primary', onclick: () => { S.joining = !S.joining; render(); } }, '🔑 번호로 입장'),
-        h('button', { class: 'ghost', onclick: () => createRoom('cpu') }, '🤖 컴퓨터와 연습')),
+        h('button', { class: 'ghost', onclick: () => createRoom('cpu') }, (g.modeLabels && g.modeLabels.cpu) || '🤖 컴퓨터와 연습')),
       join);
   }
 
@@ -313,7 +313,7 @@
         h('p', { class: 'hintline' }, '친구에게 이 번호를 알려 주세요. 친구가 입장하면 바로 시작돼요.'),
         h('div', { class: 'codebig' }, S.session.code.split('').map((d) => h('span', {}, d)))));
     } else {
-      const ctx = { send, view: () => S.view, now, toast, h, timer, rerender: render, modalRoot: $('#modal-root') };
+      const ctx = { send, view: () => S.view, now, toast, h, timer, rerender: render, modalRoot: $('#modal-root'), code: S.session.code };
       g.render(body, v, ctx);
     }
     return h('main', { class: 'wrap wide' },

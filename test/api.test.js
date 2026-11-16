@@ -113,3 +113,24 @@ test('십이장기: 방 만들기 → 두 사람이 입장 → 말 이동 → �
   const bad = await call({ action: 'move', code: a.code, token: b.token, payload: { from: 0, to: 3 } });
   assert.ok(bad.error, '내 차례가 아닐 때는 거절');
 });
+
+test('워드 타워: 방 만들기 → 여러 명 입장 → 시작 → 동시에 큐브 놓기(충돌 없이 모두 반영) → 정답은 노출되지 않음', async () => {
+  const a = await call({ action: 'create', game: 'word-tower', mode: 'pvp', name: '지민', settings: { level: 'mix3' } });
+  const others = [];
+  for (let i = 2; i <= 4; i++) others.push(await call({ action: 'join', code: a.code, name: '친구' + i }));
+  const st = await call({ action: 'start', code: a.code, token: others[0].token });
+  assert.ok(st.error, '방장이 아니면 시작할 수 없음');
+  const ok = await call({ action: 'start', code: a.code, token: a.token });
+  assert.ok(!ok.error, ok.error);
+  const s0 = await call({ action: 'state', code: a.code, token: a.token, v: -1 });
+  assert.equal(s0.view.phase, 'play'); assert.equal(s0.view.players.length, 4);
+  assert.ok(!JSON.stringify(s0).includes('"answer"'));
+  // 4명이 서로 다른 큐브를 동시에 놓는다
+  const tokens = [a.token, ...others.map((o) => o.token)];
+  const res = await Promise.all(tokens.map((tk, i) => call({ action: 'add', code: a.code, token: tk, payload: { row: i, cube: s0.view.cubes[i].id } })));
+  assert.ok(res.every((r) => !r.error), JSON.stringify(res.map((r) => r.error)));
+  const s1 = await call({ action: 'state', code: a.code, token: a.token, v: -1 });
+  assert.deepEqual(s1.view.rows.slice(0, 4).map((r) => r.length), [1, 1, 1, 1]);
+  const late = await call({ action: 'join', code: a.code, name: '늦은 친구' });
+  assert.ok(late.error);
+});

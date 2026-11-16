@@ -13,7 +13,7 @@
   }
   const when = (t) => (t ? new Date(t).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-');
   const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '-');
-  const GAME = { 'memory-poker': '기억 포커', gyeolhap: '결합' };
+  const GAME = { 'memory-poker': '기억 포커', gyeolhap: '결합', 'twelve-janggi': '십이장기', 'word-tower': '워드 타워' };
 
   let xlsxP = null;
   function loadXlsx() {
@@ -215,8 +215,8 @@
         h('p', { class: 'sumline' }, `${a.student.num}번 ${a.student.name} · 최근 ${a.answers.length}문제 중 ${ok}개 정답 (${pct(ok, a.answers.length)})`),
         h('h4', {}, '게임 결과'),
         a.games.length ? h('div', { class: 'tscroll' }, h('table', { class: 'tbl' }, h('thead', {}, th('시각', '게임', '상대', '결과', '점수')),
-          h('tbody', {}, a.games.map((g) => h('tr', {}, h('td', {}, when(g.at)), h('td', {}, (GAME[g.game] || g.game) + (g.mode === 'cpu' ? ' (컴퓨터)' : '')), h('td', {}, g.opp),
-            h('td', {}, g.result === 'win' ? '승' : g.result === 'lose' ? '패' : '무'), h('td', {}, g.score || '-')))))) : h('p', { class: 'hintline left' }, '아직 끝난 게임이 없어요.'),
+          h('tbody', {}, a.games.map((g) => h('tr', {}, h('td', {}, when(g.at)), h('td', {}, (GAME[g.game] || g.game) + (g.mode === 'cpu' ? (g.game === 'word-tower' ? ' (혼자)' : ' (컴퓨터)') : '')), h('td', {}, g.opp),
+            h('td', {}, g.result === 'win' ? '승' : g.result === 'lose' ? '패' : g.result === 'coop' ? '협력' : '무'), h('td', {}, g.score || '-')))))) : h('p', { class: 'hintline left' }, '아직 끝난 게임이 없어요.'),
         h('h4', {}, '문제 풀이 기록'),
         h('label', { class: 'chk' }, h('input', { type: 'checkbox', checked: T.onlyWrong, onchange: (e) => { T.onlyWrong = e.target.checked; draw(); } }), ' 오답만 보기'),
         ans.length ? h('div', { class: 'tscroll' }, h('table', { class: 'tbl' }, h('thead', {}, th('시각', '게임', '문제', '결과')),

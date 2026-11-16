@@ -98,6 +98,10 @@ async function activity(t, { num }) {
     games: games.map((g) => {
       const mine = g.p1_sid === id ? 'p1' : 'p2';
       const scores = g.detail && g.detail.scores ? g.detail.scores : null;
+      if (g.winner === 'coop') { // 협력 게임: 몇 라운드를 해결했는지
+        const d = g.detail || {};
+        return { at: g.created_at, game: g.game_id, mode: g.mode, opp: g.p2_name, result: 'coop', score: d.total ? `${d.solved}/${d.total} 라운드 해결` : null };
+      }
       return {
         at: g.created_at, game: g.game_id, mode: g.mode, opp: mine === 'p1' ? g.p2_name : g.p1_name,
         result: g.winner === 'draw' ? 'draw' : g.winner === mine ? 'win' : 'lose',
